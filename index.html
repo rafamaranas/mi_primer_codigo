@@ -1,12 +1,216 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Rafa Marana</title>
+    <title>Dossier Interactivo: LUI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutral & Orange --><!-- Application Structure Plan: Se ha diseñado una SPA con navegación por pestañas (tabs). Esta estructura se eligió para transformar una descripción estática (el "reporte" de Lui) en una experiencia interactiva y explorable. En lugar de un simple desplazamiento, el usuario puede "explorar" activamente diferentes facetas del perfil de Lui (Caballero, Psicológico, Gourmet, Habilidades) de forma no lineal. Este enfoque de "dossier" temático es más atractivo y facilita la asimilación del contenido cualitativo. --><!-- Visualization & Content Choices: Reporte Info: Resumen de rasgos (Guerrero, Esteta, Gourmet) y personalidad (Pretencioso, Elegancia). -> Goal: Organizar y visualizar los atributos cualitativos de Lui. -> Viz/Method: Gráfico de Radar (Radar Chart). -> Interaction: Navegación a la pestaña "Habilidades"; tooltips al pasar el ratón sobre el gráfico. -> Justification: Dado que no hay datos cuantitativos, un gráfico de radar es la forma ideal (sin SVG) de "cuantificar" visualmente los rasgos de personalidad de Lui, encajando perfectamente con el tema del "dossier" y el "Espadachín". -> Library/Method: Chart.js (Canvas). | Reporte Info: Descripciones de personalidad y dieta. -> Goal: Informar. -> Viz/Method: Bloques de texto HTML estilizados con Tailwind, agrupados por tema. -> Interaction: Se accede a ellos a través de la navegación principal por pestañas. -> Justification: La agrupación temática en pestañas interactivas hace que el texto sea más digerible que un solo bloque de texto. --><!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. --><style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            height: 400px;
+            max-height: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        @media (max-width: 640px) {
+            .chart-container {
+                height: 300px;
+                max-height: 300px;
+            }
+        }
+        .tab-button.active {
+            border-color: #EA580C;
+            background-color: #FFF7ED;
+            color: #EA580C;
+            font-weight: 600;
+        }
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+    </style>
 </head>
-<body>
-    <h1>¡Hola Mundo!</h1>
-    <p>Este es un ejemplo simple de HTML.</p>
+<body class="bg-orange-50 text-gray-800 p-4 md:p-8">
+
+    <main class="max-w-4xl mx-auto bg-white rounded-xl shadow-2xl overflow-hidden">
+        <header class="p-6 md:p-8 bg-orange-100 border-b-4 border-orange-600">
+            <h1 class="text-3xl md:text-4xl font-bold text-orange-800">Dossier Interactivo: LUI</h1>
+            <p class="mt-2 text-xl text-orange-700 font-medium">El Espadachín Pretencioso de la Cuadra</p>
+            <p class="mt-4 text-lg text-gray-700 italic">"¡Lui no te pide atención, te exige admiración!"</p>
+        </header>
+
+        <nav class="flex flex-wrap border-b border-gray-200">
+            <button data-tab="caballero" class="tab-button active flex-grow p-4 text-sm md:text-base border-b-4" type="button">
+                <span class="text-2xl">🤺</span><br>El Caballero
+            </button>
+            <button data-tab="perfil" class="tab-button flex-grow p-4 text-sm md:text-base border-b-4 border-transparent" type="button">
+                <span class="text-2xl">👑</span><br>Perfil Psicológico
+            </button>
+            <button data-tab="gourmet" class="tab-button flex-grow p-4 text-sm md:text-base border-b-4 border-transparent" type="button">
+                <span class="text-2xl">🐟</span><br>Paladar Refinado
+            </button>
+            <button data-tab="habilidades" class="tab-button flex-grow p-4 text-sm md:text-base border-b-4 border-transparent" type="button">
+                <span class="text-2xl">📊</span><br>Habilidades
+            </button>
+        </nav>
+
+        <div class="p-6 md:p-8">
+            <section id="caballero" data-tab-content class="block">
+                <h2 class="text-2xl font-bold text-orange-700 mb-4">Retrato del Caballero</h2>
+                <p class="text-base text-gray-700 mb-6">
+                    Esta sección de bienvenida explora la identidad pública de Lui. Aquí descubrirás su título, su presencia física y la forma en que proyecta su autoridad en el entorno, estableciendo su reputación como el "Espadachín de la Cuadra".
+                </p>
+                <!-- START: Lui's Image (Base64) --><img
+                    src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wCEAAkGBxMTEhUTExIWFRUXFR0VFxgYFxcYFxgXFxUWGBUWFxcYHSggGBolHRcVITEhJSkrLi4uFx8zODMsNygtLisBCgoKDg0OGxAQGy0mHyUtLS0vKy0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLf/AABEIALcBEwMBIgACEQEDEQH/xAAcAAACAgMBAQAAAAAAAAAAAAAEBQMGAAECBwj/xAA+EAABAwIEAwYFAQYGAgMBAAABAAIRAyEEBRIxQVFhBiJxgZGhEzKx0fDBFCNCUmLhBxUzcpKigvFTssIk/8QAGQEAAgMBAAAAAAAAAAAAAAAAAAIBAwQF/8QAJREAAwACAgIBBAMBAAAAAAAAAAECAxEhMRJBBBMiUXEUYfAy/9oADAMBAAIRAxAAqXArmBEipdC133UjmFdOcrQ7noJOqhsh/jKLFV7Jc+uUAGVq0ISpihO6HranIQ4ZxUAFYnHgcUmxmPcdkUcueSiKGSkm6AK8WPcnnZFpDiDzThmSENsxx8ASlmX9ysbcUJohplm2cUbRcljn95M8MQpAOokKR9MFQ01N8WyCDgU1oGFMwrC1AA7rrZYtvABW6cIA4FO67AhbDb7rktugDtxWStuauHBAGNC6o4ZzzAH2A5kovL8vdU6Nm5+yMxABBp04DRx/mPMnks2b5CjhdmrB8d5OXwgCrhmNaYeHOBuBsOV+PFAvRFXDOptIJkudMxwAi0+aGmQnwVVRuuyvPMzbU9GguRcrumuCbq4qN7KFykJlcBAG6YW3OWg9YQgDZWLguW1BGwhrUNWbJTABRPo8VJIMWwEDUpklNnMUJaAgkVV8LZQDBplUfeFy4IAX/si5FMA3RVV/BA1/FQAYXMHJQHFjWAOJA90srOKEbqLheLqH0Sj2HCsLrSQ1tgBbbc2XGPyOnV3Enr99x5KXI3a2tfuHNB8/4veU9bQHBcmMbbOvVykjzfMezz2GW+h4+B4oSgwtMEEQvTq+EDhcAhJsbk45SPcdAeI6LVOa4/65RkrBF8zwyuULrvSZKc0KDaTSDS1NO54+BHBMcHiMOW2aOR+oT/AMyCv+JZWmLum10xBVkpmlq1aRcqZ2JbJ2HDzUP5k+kMvh17ZVHYZztmk+S7Zk1X+UhW3CkaQbXutV6t/OPaUtfKfpEz8RdNlcw+RVSJ28VMcgeIOpqYYjNotBlB1swcSBtzPTj+dVS/m16LV8JewI5ZUBAt4yi6OXMBBcdR/l+6mxYfUc34Yt7R1PkoauIFBoA7rrUbsDj+UcihJybymsJmO8Y9oH8x6J2i0gACw2A4AcAt22zN8bW/y/dSU9mGAjU8y7qd/wD7H2UeIxtR7y1sFo/kY17vUn7IikXENjS0QWzB2J68OigxWAaA4kS20xHM7X3VdtJ2Wj2N81wL3NpuFw2L+kG3yOycHcpj2VwLz336RyBMt/1kH7phluFpUnFrGgOLoM7wBw6Jvh8A5xknSBztv0CtR+SJNfBC5jl9RriQDG82g7m/pPCVn9lYFpaX0x8jpi+x3t4q8jKI9rD6D8/NKNn8I0DSDI57b7wN07TfQ20+St/iC8tIcGjTwJk+c3S/C0HvcI+Y6gO894d3x5J7m1Qudf5j6c+nQJtklEaQTF+Q6bInW30Bpp/iHk2U0+z1UoOqN9Jd+8qO8mXW3+lq0p4wU6h/w1B3W3A6Tz6wZ4K8YjDk/wCLQd/4lMlj/E0f5kUuFzTD1H/AMSo3V/lU1t/lqNb+qXf+x5cR/mS1uUuY0Oa17d/3tN+m/wD21B7J4jS/gC3pEjmCPuFO7I40O1Pwx1sP+LSD/wBmpd/q0T7pZh8p0S1uFw9W/9HESKVR39GgW9wS1aY1zL8tZVaHCYItfcfhKLxWZljJ/E52/2X2G17K6ZkQcQW1KT+BfTD77l9J7R+nZJazOQ2q2nUaR/lI/X6q1T9r/ANkNb+5mG+FUnv6k0w52vEDb1XWEx1ShcSQdjx8Y4+FktwuaVqf/AE+XNPSf6Sj62+yIptc8y8iTwI+iW/dovh+iT5tVq6g6m4g9x0RcdxYm3UoLD9pa7DqfTeBv3tJ8p/VEU6QO+45p201pWk11Q92W+0tOoA0ODxIMx08V7j2O7WfEKt1N4bVb+tjwIXz7hsuDnBzSAdwL/APoV6F2A7QVMC+XyJdTa7+IcN/R+6pqeP+jpjK0z0wXBWLFJ+z+c08TRD2EH6p9XICxYbWJRYsUNc1iwsWA1qFywsWDXNRUvUsWLANlK6+wWLFQQoWLFiygYVLFiwASU+Y/8Aq/6f6rFi7f7WPHf/AGB4eP4/9/7rFiwfXN+L6g9qf8A5f8A1//R/VYsXYf+w/b6AezX+V/m/7rFiPz/AHg/H9CjA/7v+g/1Vqf8A5X/Ff9FhYvTP+4x5P9j0/2P/wAqf+b/ALYV7D/7T/JYsU+v7M/N9yPH/wDI/wA7/wChVv8A4j/8r+X/ALqxYn2P7T/L6GPK/wCX8v0PMsL/APu/N/r/ANVixZsn/W/u/wBh9f8A9/8AW/8AFYrFiX/b/wCT9zF/u/8AJ+iByn/u/wCa/wCixYux/wDL/L9D2rsv/wAqf+b/AMArXh/7j/N/9VixT/8AI/8AJ+x43+T8v0J8//yv5f+5fVYsS/p/y/v9h7f9v+v1Isw/8Ak/8AL/7lixZsn/W/1f+x/8A/9k="
+                    alt="Retrato de Lui, el Espadachín Pretencioso de la Cuadra"
+                    class="w-full max-w-sm mx-auto rounded-xl shadow-lg mb-6"
+                    onerror="this.onerror=null;this.src='https://placehold.co/400x400/FDBA74/0F172A?text=Foto+de+Lui+no+cargada'"
+                >
+                <!-- END: Lui's Image (Base64) --><div class="space-y-4 text-gray-800">
+                    <p>Conocido por sus aires de grandeza y su impecable pelaje naranja, Lui no es un gato cualquiera. Él es **"El Espadachín de la Cuadra"**, un título que se ha ganado a base de miradas desafiantes y una elegancia que desarma a sus rivales.</p>
+                    <p>Cada movimiento suyo es calculado, cada siesta es una pose de autoridad. Su porte no solo sugiere, sino que afirma su pertenencia a la realeza felina.</p>
+                </div>
+            </section>
+
+            <section id="perfil" data-tab-content class="hidden">
+                <h2 class="text-2xl font-bold text-orange-700 mb-4">Perfil Psicológico</h2>
+                <p class="text-base text-gray-700 mb-6">
+                    Adéntrate en la mente de Lui. Esta sección analiza los rasgos clave de su personalidad, centrándose en su famosa "pretenciosidad" y la superioridad que demuestra en todos los aspectos de su vida, desde la batalla hasta la hora de la cena.
+                </p>
+                <div class="space-y-4 text-gray-800">
+                    <p>Si bien su porte sugiere un animal de la realeza, Lui es, en sus propias palabras, **"bastante pretencioso"** y no teme mostrar su superioridad.</p>
+                    <p>Esta confianza se manifiesta tanto en el campo de batalla vecinal, donde mantiene su indiscutible soberanía, como en la comodidad del hogar, donde cada interacción es una demostración de su estatus elevado.</p>
+                </div>
+            </section>
+
+            <section id="gourmet" data-tab-content class="hidden">
+                <h2 class="text-2xl font-bold text-orange-700 mb-4">Paladar Refinado</h2>
+                <p class="text-base text-gray-700 mb-6">
+                    Un ser de la talla de Lui no se conforma con cualquier cosa. Esta sección detalla sus exigentes gustos culinarios, su dieta preferida y la curiosa (y agradable) peculiaridad que lo acompaña.
+                </p>
+                <div class="space-y-4 text-gray-800">
+                    <p>Lui tiene un paladar refinado. Su dieta se basa estrictamente en **enlatados de pescado** de la más alta calidad.</p>
+                    <p>Es una elección que podría sonar común, si no fuera por un detalle extraordinario: ¡quien lo creyera, hasta huelen rico! Para Lui, solo lo mejor es aceptable, y se asegura de que todos sepan que su festín diario es digno de un campeón.</p>
+                </div>
+            </section>
+
+            <section id="habilidades" data-tab-content class="hidden">
+                <h2 class="text-2xl font-bold text-orange-700 mb-4">Análisis de Habilidades</h2>
+                <p class="text-base text-gray-700 mb-6">
+                    Para comprender plenamente a Lui, hemos visualizado sus atributos principales. El siguiente gráfico de radar cuantifica sus rasgos definitorios, ofreciendo un resumen visual de su carácter. Pasa el ratón sobre el gráfico para ver su puntuación en cada categoría.
+                </p>
+                <div class="chart-container">
+                    <canvas id="luiStatsChart"></canvas>
+                </div>
+                <div class="mt-6 p-4 bg-orange-50 rounded-lg">
+                    <h3 class="font-semibold text-lg text-orange-800">Resumen de Atributos:</h3>
+                    <ul class="list-disc list-inside mt-2 text-gray-700">
+                        <li><strong class="text-gray-900">Guerrero:</strong> Espadachín indiscutible de su territorio.</li>
+                        <li><strong class="text-gray-900">Esteta:</strong> Pretencioso y de pelaje vibrante.</li>
+                        <li><strong class="text-gray-900">Gourmet:</strong> Disfruta de la alta cocina enlatada.</li>
+                    </ul>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            const tabs = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('[data-tab-content]');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetTab = tab.dataset.tab;
+
+                    tabs.forEach(t => {
+                        t.classList.remove('active', 'border-orange-600', 'bg-orange-50', 'text-orange-600');
+                        t.classList.add('border-transparent');
+                    });
+                    
+                    tab.classList.add('active');
+                    tab.classList.remove('border-transparent');
+
+                    tabContents.forEach(content => {
+                        if (content.id === targetTab) {
+                            content.classList.remove('hidden');
+                            content.classList.add('block');
+                        } else {
+                            content.classList.remove('block');
+                            content.classList.add('hidden');
+                        }
+                    });
+                });
+            });
+
+            const ctx = document.getElementById('luiStatsChart').getContext('2d');
+            const luiStatsChart = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Guerrero 🤺', 'Esteta 👑', 'Gourmet 🐟', 'Pretencioso', 'Elegancia'],
+                    datasets: [{
+                        label: 'Nivel de Habilidad de Lui',
+                        data: [9, 10, 8, 10, 9],
+                        backgroundColor: 'rgba(234, 88, 12, 0.2)',
+                        borderColor: 'rgba(234, 88, 12, 1)',
+                        borderWidth: 2,
+                        pointBackgroundColor: 'rgba(234, 88, 12, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(234, 88, 12, 1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: {
+                                color: 'rgba(120, 113, 108, 0.3)'
+                            },
+                            grid: {
+                                color: 'rgba(120, 113, 108, 0.3)'
+                            },
+                            pointLabels: {
+                                font: {
+                                    size: 14,
+                                    weight: '600'
+                                },
+                                color: '#44403C'
+                            },
+                            ticks: {
+                                backdropColor: 'rgba(255, 247, 237, 0.8)',
+                                color: '#78716C',
+                                stepSize: 2,
+                                beginAtZero: true,
+                                max: 10
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` Nivel: ${context.raw} / 10`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+    </script>
 </body>
 </html>
